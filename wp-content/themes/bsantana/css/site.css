@@ -735,3 +735,21 @@ a.socio_contact_flickr {background: transparent url('../images/socio/contact_fli
   height: 101%;
   overflow: hidden;
 }
+
+/******************************************************************************/
+/*  PÓS THEMA                                                                 */
+/******************************************************************************/
+.logo_header {
+	border: 1px solid #d82545;
+	border-radius: 50%;
+	background: #d82545;
+}
+
+.logo img {
+	width: 146px;
+	position: relative;
+	margin: 0 auto;
+	display: block;
+	top: 50%;
+	margin-top: -43.5px;
+}

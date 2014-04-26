@@ -70,8 +70,8 @@
 				<div class="container">
 					<div class="header-wrapper">
 						<div class="header">
-							<div class="logo">
-								<img src="<?php echo get_stylesheet_directory_uri() . "/images/logo/logo.png";?>" alt="logo" />
+							<div class="logo logo_header">
+								<img class='s' src="<?php echo get_stylesheet_directory_uri() . "/images/logo/b-santana.png";?>" alt="logo" />
 							</div>
 						</div>
 					</div>      
