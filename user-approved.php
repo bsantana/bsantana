@@ -21,9 +21,7 @@
 
     	/*enviar email*/
 		update_user_meta( $user_id, 'status', 'pendente');
-
-		$xo = 'bruno_shenn@hotmail.com';
-	 	$so = 'brunosantana@trii.com.br';
+		
 	 	$to = get_userdata($user_id)->user_email;
   		$subject = "Aprovacao cadastro edumais";
  		$message = '<html xmlns="http://www.w3.org/1999/xhtml">' .
@@ -77,12 +75,5 @@
 					'</html>';
 
  		wp_mail( $to, $subject, $message);
- 		wp_mail( $xo, $subject, $message);
- 		wp_mail( $so, $subject, $message);
-
-
-		print_r($key);
-		print_r($to);
-		print_r('foiemail?');
 		exit();
 	}
