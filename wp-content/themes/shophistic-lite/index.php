@@ -1,8 +1,7 @@
 <?php get_header(); ?>
 
-<?php get_template_part( "/templates/beforeloop", "index" ); ?>  
-<?php echo do_shortcode("[huge_it_slider id='1']"); ?> 
-<br>
+<?php get_template_part( "/templates/beforeloop", "index" ); ?>   
+
 	<?php if (have_posts()) : ?>
 
 		<?php while (have_posts()) : the_post(); ?>
