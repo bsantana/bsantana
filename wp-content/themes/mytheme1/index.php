@@ -1,33 +1,40 @@
 <?php get_header(); ?>
 <div id="conteudo">
     <div id="artigos">
-        <div class="artigo">
-            <h2>Titulo do artigo 1</h2>
-            <p>Postado por administrador em 16/01/2017</p>
-            <p>Conteudo do artigo</p>
-        </div>
+        <?php $post = $posts[0]; // Hack. Set $post so that the_date() works. ?>
+        <?php /* If this is a category archive */ if (is_category()) { ?>
+            Arquivo da Categoria "<?php echo single_cat_title(); ?>"
+        <?php /* If this is a daily archive */ } elseif (is_day()) { ?>
+            Arquivo de <?php the_time('j de F de Y'); ?>
+        <?php /* If this is a monthly archive */ } elseif (is_month()) { ?>
+            Arquivo de <?php the_time('F de Y'); ?>
+        <?php /* If this is a yearly archive */ } elseif (is_year()) { ?>
+            Arquivo de <?php the_time('Y'); ?>
+        <?php /* If this is an author archive */ } elseif (is_author()) { ?>
+            Arquivo do Autor
+        <?php /* If this is a paged archive */ } elseif (isset($_GET['paged']) && !empty($_GET['paged'])) { ?>
+            Arquivo do Blog
+        <?php } ?>
+    
+        <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
+            <div class="artigo">
+                <h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
+                <p>Postado por <?php the_author(); ?> em <?php the_time('d/m/Y'); ?> - <?php comments_popup_link('Sem Comentários', '1 Comentário', '% Comentários', 'comments-link', ''); ?> <?php edit_post_link('(Editar)'); ?></p>
+                <p><?php the_content(); ?></p>
+            </div>
+        <?php endwhile; ?>
+            <div class="navegacao">
+                <div class="recentes"><?php next_posts_link('Próximo Artigo &raquo;') ?></div>
+                <div class="anteriores"><?php previous_posts_link('&laquo; Artigo Anterior') ?></div>
+            </div>
+        <?php else: ?>
+            <div class="artigo">
+                <h2>Nada Encontrado</h2>
+                <p>Erro 404</p>
+                <p>Lamentamos mas não foram encontrados artigos.</p>
+            </div>
+        <?php endif; ?>
          
-        <div class="artigo">
-            <h2>Titulo do artigo 2</h2>
-            <p>Postado por administrador em 16/01/2017</p>
-            <p>Conteudo do artigo</p>
-
-            <form action="#" method="post" enctype="multipart/form-data">
-                <input type="file" name="arquivo" />
-                <input type="submit" value="UpLoad" />
-            </form>
-
-            <a href="wp-content/uploads/jfelicio" title="arquivos no servidor">arquivos no servidor</a>
-
-            <?php
-                if($_FILES['arquivo'] != '') {
-                    $arquivo = $_FILES['arquivo'];
-                    move_uploaded_file($arquivo['tmp_name'], 'wp-content/uploads/jfelicio/' . $arquivo['name']);
-                    print_r( $_FILES );
-                    echo "foi";
-                }
-            ?>
-        </div>
     </div>
 
     <!--o código da sidebar ficava aqui-->

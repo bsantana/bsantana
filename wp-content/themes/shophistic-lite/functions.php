@@ -45,6 +45,6 @@ add_action('wp_enqueue_scripts', 'shophistic_lite_jquery_script');
 //You can start adding your code below
 //==================================================================
 	
-
+//remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
 
 ?>

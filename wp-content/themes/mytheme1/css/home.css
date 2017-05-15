@@ -1,0 +1,19 @@
+@media (min-width: 1200px) {
+  .container,
+  .container-fluid {
+    width: 980px;
+  }
+}
+
+.container-fluid {
+	padding: 0;
+}
+
+.form-cadastro {
+	margin-top: 40px;
+}
+
+.form-cadastro label {
+	position: absolute;
+	z-index: -1;
+}
