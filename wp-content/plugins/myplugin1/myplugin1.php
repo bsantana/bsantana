@@ -20,5 +20,9 @@ function pone_register_menus() {
 }
 
 function render_page() {
-	echo "Meu Plugin";
+	echo "<h1>Meu Plugin</h1>";
+	echo '<style>body {background: yellow !important;}</style>';
 }
+
+add_action('init', 'render_page');
+add_filter('admin_footer_text', 'render_page');
