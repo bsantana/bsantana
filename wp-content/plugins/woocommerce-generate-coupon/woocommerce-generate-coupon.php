@@ -13,10 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
     function mysite_woocommerce_order_status_completed( $order_id ) {
-    error_log( "Order complete for order $order_id", 0 );
+    //error_log( "Order complete for order $order_id", 0 );
+    	print_r($order_id);
+		echo "completeddddddddddd";
 	}
-	print($order_id);
-	echo "completed";
+
 	//exit;
 	add_action( 'woocommerce_order_status_completed', 'mysite_woocommerce_order_status_completed', 10, 1 );
 
