@@ -30,8 +30,11 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	 print($order_id);
 	 echo "thankyou";
 
-	 $order = wc_get_order( $order_id );
-	 print($order);
+	 //	$order = wc_get_order( $order_id );
+	 $order = new WC_Order( $order_id );
+	 //print_r($order->user_id);
+	 $user = $order->get_user();
+	 print_r($user);
 	 echo 'separacaaaaaaaaaaaaaaaaaaaaao';
 	 $products = $order->get_items();
 	 print_r($products);
