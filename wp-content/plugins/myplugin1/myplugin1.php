@@ -7,6 +7,10 @@ Version: 0.1
 Author URI: http://author1.me/
 */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Mostra apenas uma tela branca se algum retarda tentar acessar o arquivo diretamente.
+}
+
 add_action('admin_menu', 'pone_register_menus');
 
 function pone_register_menus() {
