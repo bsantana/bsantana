@@ -13,99 +13,92 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
     function send_coupom_order_status_completed( $order_id ) {
-    //error_log( "Order complete for order $order_id", 0 );
-    	print_r($order_id);
-		echo "completeddddddddddd";
-	}
+    	// Regra para enviar cupom personalizado aqui após ter sido criado
+    	// Verifica se existe cupom associado a ordem
+    	$order = new WC_Order( $order_id );
+    	$user_email = $order->get_user()->user_email;
 
-	//exit;
+		global $wpdb;
+		$coupon_order = $wpdb->get_row( "SELECT * FROM $wpdb->posts WHERE post_parent = {$order_id}" );
+
+		if ($coupon_order) {
+			$to = $user_email;
+	        $subject = 'New Order Completed';
+	        //$headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
+	        
+	        $message = "A new order has been completed.\n";
+	        $message .= "Order ID: {$order_id} \n";
+	        $message .= "Coupons for use:\n";
+	        $message .= $coupon_order->post_title;
+	        
+        	@wp_mail( $to, $subject, $message );
+		}
+
+    	
+	}
 	add_action( 'woocommerce_order_status_completed', 'send_coupom_order_status_completed', 10, 1 );
 
+	function your_wc_autocomplete_order( $order_id ) {
+		if ( ! $order_id ) return;
+
+		echo "<p style='display: none;'>thankyou</p>";
+		$order = new WC_Order( $order_id );
+		//print_r($order->get_used_coupons());
+
+		$user_id    = $order->get_user()->ID;
+		$user_email = $order->get_user()->user_email;
+
+		foreach ($order->get_items() as $item_id => $item_obj) {
+			$data = wc_get_order_item_meta( $item_id, '_tmcartepo_data' );
+			//echo '<pre>';
+			//print_r($data);
+			if ($data[0]['value'] == "Mensal") {
+				$qty_mensal += $data[2]['quantity'];
+			}
+		}
+
+		// Regra para criar cupom personalizado aqui
+		//echo "Enviar email quantidade mensal: " . $qty_mensal;
+		if ($qty_mensal >= 1) {
+			$coupon_code = "{$user_id}-{$order_id}"; // Code
+			$discount = '100'; // Desconto
+			$discount_type = 'percent_product'; // Type: fixed_cart, percent, fixed_product, percent_product
+			//$expiry_date = '2017-10-11';
+								
+			$coupon = array(
+				'post_title' => $coupon_code,
+				'post_content' => '',
+				'post_name' => $coupon_code,
+				'post_parent' => $order_id,
+				'post_status' => 'publish',
+				'post_author' => 1,
+				'post_type'		=> 'shop_coupon'
+			);
+
+			// Verifica se existe cupom associado a ordem
+			global $wpdb;
+			$coupon_order = $wpdb->get_row( "SELECT * FROM $wpdb->posts WHERE post_parent = {$order_id}" );
+
+			if (!$coupon_order) {
+				$new_coupon_id = wp_insert_post( $coupon );
+
+				// Add meta
+				update_post_meta( $new_coupon_id, 'discount_type', $discount_type );
+				update_post_meta( $new_coupon_id, 'coupon_amount', $discount );
+				update_post_meta( $new_coupon_id, 'individual_use', 'yes' );
+				update_post_meta( $new_coupon_id, 'product_ids', '3090,3000,2989,2985,2181,9673,9938' );
+				update_post_meta( $new_coupon_id, 'exclude_product_ids', '' );
+				update_post_meta( $new_coupon_id, 'usage_limit', $qty_mensal );
+				update_post_meta( $new_coupon_id, 'expiry_date', $expiry_date ); // data de expiração
+				update_post_meta( $new_coupon_id, 'limit_usage_to_x_items', '1' ); // data de expiração
+				update_post_meta( $new_coupon_id, 'apply_before_tax', 'yes' );
+				update_post_meta( $new_coupon_id, 'maximum_amount', '300' );
+				update_post_meta( $new_coupon_id, 'free_shipping', 'no' );
+			}
+		}
+	}
 	add_action( 'woocommerce_thankyou', 'your_wc_autocomplete_order' );
 
-	function your_wc_autocomplete_order( $order_id ) {
-
-	 if ( ! $order_id ) {
-	   return;
-	 }
-	 print($order_id);
-	 echo "thankyou";
-
-	 //	$order = wc_get_order( $order_id );
-	 $order = new WC_Order( $order_id );
-	 //print_r($order->user_id);
-	 $user 		 = $order->get_user();
-	 $user_id 	 = $user->ID;
-	 $user_email = $user->user_email;
-	 echo 'IDDDDDDDDD:';
-	 print_r($user_id);
-	 print_r($user_email);
-	 print_r($order->get_used_coupons());
-	 echo 'separacaaaaaaaaaaaaaaaaaaaaao';
-	 echo '<br>';
-	 $products = $order->get_items();
-	 /*foreach ( $products as $item ) {
-  		// This will be a product
-  		echo 'from item:';
-  		$product = $order->get_product_from_item( $item );
-  		print_r($product);
-  
-  	echo 'get sku:';
-  		// This is the products SKU
-		$sku = $product->get_sku();
-		print_r($sku);
-		
-		echo 'qnty profissio:';
-		// This is the qty purchased
-		$qty = $item['qty'];
-		print_r($qty);
-		/*foreach ( $item as $item_data ) {
-			echo 'item release:';
-			echo '<pre>';
-			print_r($item_data);
-			echo $item_data;
-			echo '</pre>';
-		}*/
-		//$orderr = wc_get_order( $order_id );
-	  foreach ($order->get_items() as $item_id => $item_obj) {
-	  		echo 'aqui: ';
-	  		echo $order_id;
-	         $kua = $item_obj->get_meta_data();
-	         $data = wc_get_order_item_meta( $item_id, '_tmcartepo_data' );
-	         echo '<pre>';
-	          print_r($data);
-	          if ($data[0]['value'] == "Mensal") {
-	          	echo 'foi';
-	          	echo $data[2]['quantity'];
-	          }
-
-
-	  }
-
-	/*	echo 'item release:';
-		echo '<pre>';
-		print_r($item);
-		echo '</pre>';
-		
-		
-		echo 'line total:';
-		// Line item total cost including taxes and rounded
-		$total = $order->get_line_total( $item, true, true );
-		print_r($order->get_meta());
-		echo 'line subtotal:';
-		// Line item subtotal (before discounts)
-		$subtotal = $order->get_line_subtotal( $item, true, true );
-		print_r($order->get_meta_data());
-	}*/
-
-	 
-	 echo '<pre>';
-	 print_r($products);
-	 //$order->update_status( 'completed' );
-
-	}
-
-	add_action( 'woocommerce_payment_complete', 'so_payment_complete' );
 	function so_payment_complete( $order_id ){
 	    $order = wc_get_order( $order_id );
 	    $user = $order->get_user();
@@ -117,13 +110,14 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	        // do something with the user
 	    }
 	}
+	add_action( 'woocommerce_payment_complete', 'so_payment_complete' );
 
 	function woo_email_order_coupons( $order_id ) {
         $order = new WC_Order( $order_id );
         
         if( $order->get_used_coupons() ) {
         
-          $to = 'youremail@yourcompany.com';
+        	$to = 'youremail@yourcompany.com';
 	        $subject = 'New Order Completed';
 	        $headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
 	        
