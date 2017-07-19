@@ -12,21 +12,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 
 if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
-    function mysite_woocommerce_order_status_completed( $order_id ) {
+    function send_coupom_order_status_completed( $order_id ) {
     //error_log( "Order complete for order $order_id", 0 );
     	print_r($order_id);
 		echo "completeddddddddddd";
 	}
 
 	//exit;
-	add_action( 'woocommerce_order_status_completed', 'mysite_woocommerce_order_status_completed', 10, 1 );
+	add_action( 'woocommerce_order_status_completed', 'send_coupom_order_status_completed', 10, 1 );
 
 	add_action( 'woocommerce_thankyou', 'your_wc_autocomplete_order' );
 
 	function your_wc_autocomplete_order( $order_id ) {
 
 	 if ( ! $order_id ) {
-	  // return;
+	   return;
 	 }
 	 print($order_id);
 	 echo "thankyou";
@@ -34,8 +34,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	 //	$order = wc_get_order( $order_id );
 	 $order = new WC_Order( $order_id );
 	 //print_r($order->user_id);
-	 $user = $order->get_user();
-	 print_r($user);
+	 $user 		 = $order->get_user();
+	 $user_id 	 = $user->ID;
+	 $user_email = $user->user_email;
+	 echo 'IDDDDDDDDD:';
+	 print_r($user_id);
+	 print_r($user_email);
+	 print_r($order->get_used_coupons());
 	 echo 'separacaaaaaaaaaaaaaaaaaaaaao';
 	 echo '<br>';
 	 $products = $order->get_items();
@@ -111,5 +116,33 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	    if( $user ){
 	        // do something with the user
 	    }
+	}
+
+	function woo_email_order_coupons( $order_id ) {
+        $order = new WC_Order( $order_id );
+        
+        if( $order->get_used_coupons() ) {
+        
+          $to = 'youremail@yourcompany.com';
+	        $subject = 'New Order Completed';
+	        $headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
+	        
+	        $message = 'A new order has been completed.\n';
+	        $message .= 'Order ID: '.$order_id.'\n';
+	        $message .= 'Coupons used:\n';
+	        
+	        foreach( $order->get_used_coupons() as $coupon) {
+		        $message .= $coupon.'\n';
+	        }
+	        @wp_mail( $to, $subject, $message, $headers );
+        }
+	}
+	//add_action( 'woocommerce_thankyou', 'woo_email_order_coupons' ); Funçao para mudar status do cupom após ele ser utilizado
+
+ 
+	// add_action( 'woocommerce_email_before_order_table', 'add_content', 20 ); adicionando contéudo ao email de ordem na página de agradecimento
+	 
+	function add_content() {
+	echo '<h2 id="h2thanks">Get 20% off</h2><p id="pthanks">Thank you for making this purchase! Come back and use the code "<strong>Back4More</strong>" to receive a 20% discount on your next purchase! Click here to continue shopping.</p>';
 	}
 }
