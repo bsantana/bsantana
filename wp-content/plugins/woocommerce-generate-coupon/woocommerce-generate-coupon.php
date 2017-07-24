@@ -10,6 +10,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/*
+
+1 - Cupom gerado após o cadastro de ordem de pagamento com quantidade de meses que o cliente contratou que é igual a quantidade que o cupom pode ser utilizado
+	1.1 - Falta definir data de expiração "metadata" -> $used = true; else: $used = false;
+1.2 - 
+2 - Email com cupom enviado após a confirmação por parte do administrador do sistema
+	3 - Excluir cupom caso o administrador do sistema cancele a ordem
+
+*/
 
 if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
     function send_coupom_order_status_completed( $order_id ) {
@@ -99,6 +108,51 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	}
 	add_action( 'woocommerce_thankyou', 'your_wc_autocomplete_order' );
 
+	
+	function coupon_always_valid($valid, $coupon){
+		 $to = 'jaci.bruno@russelservicos.com.br';
+        $subject = 'New Order Completed';
+        //$headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
+        
+        $message = "A new order has been completed.\n";
+        $message .= "Order ID: {$order_id} - {$valid} - {$coupon} - {$intt} \n";
+        $message .= "Coupons for use:\n";
+        $message .= $coupon_order->post_title;
+        
+    	@wp_mail( $to, $subject, $message );
+    	$valid = false;
+    	$error_code = WC_Coupon::E_WC_COUPON_MAX_SPEND_LIMIT_MET;
+    	$coupon->error_message = $coupon->get_coupon_error( $error_code );
+    	apply_filters( 'woocommerce_coupon_error', '$err', 200, null );
+		return $valid;
+    	//die();
+
+	}
+	add_filter('woocommerce_coupon_is_valid','coupon_always_valid',99,2);
+	
+	function apply_product_on_coupon( $array, $int, $intt ) {
+	    global $woocommerce;
+	    $coupon_id = '9-13976';
+	    $free_product_id = 54321;
+	    
+
+	    $to = 'jaci.bruno@russelservicos.com.br';
+        $subject = 'New Order Completed';
+        //$headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
+        
+        $message = "A new order has been completed.\n";
+        $message .= "Order ID: {$order_id} - {$array} - {$int} - {$intt} \n";
+        $message .= "Coupons for use:\n";
+        $message .= $coupon_order->post_title;
+        die();
+    	@wp_mail( $to, $subject, $message );
+    	
+	    if(in_array($coupon_id, $woocommerce->cart->applied_coupons)){
+	        $woocommerce->cart->add_to_cart($free_product_id, 1);
+	    }
+	}
+	//add_action('woocommerce_applied_coupon', 'apply_product_on_coupon');
+
 	function so_payment_complete( $order_id ){
 	    $order = wc_get_order( $order_id );
 	    $user = $order->get_user();
@@ -110,7 +164,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	        // do something with the user
 	    }
 	}
-	add_action( 'woocommerce_payment_complete', 'so_payment_complete' );
+	//add_action( 'woocommerce_payment_complete', 'so_payment_complete' );
 
 	function woo_email_order_coupons( $order_id ) {
         $order = new WC_Order( $order_id );
