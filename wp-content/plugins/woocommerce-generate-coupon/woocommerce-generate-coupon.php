@@ -108,6 +108,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	}
 	add_action( 'woocommerce_thankyou', 'your_wc_autocomplete_order' );
 
+	function testando_er( $err, $err_code, $this ) {
+		return 'meu erro';
+	}
 	
 	function coupon_always_valid($valid, $coupon){
 		 $to = 'jaci.bruno@russelservicos.com.br';
@@ -120,11 +123,17 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
         $message .= $coupon_order->post_title;
         
     	@wp_mail( $to, $subject, $message );
-    	$valid = false;
+    	if (1 == 2) {
+    		add_filter('woocommerce_coupon_error', 'testando_er');
+    		$valid = false;
+    	} else {
+    		$valid = true;
+    	}
+    	
     	$error_code = WC_Coupon::E_WC_COUPON_MAX_SPEND_LIMIT_MET;
     	$coupon->error_message = $coupon->get_coupon_error( $error_code );
-    	apply_filters( 'woocommerce_coupon_error', '$err', 200, null );
-    	wc_add_notice( '$msg', 'error' );
+    	//apply_filters( 'woocommerce_coupon_error', '$err', 200, null );
+    	//wc_add_notice( '$msg', 'error' );
 		return $valid;
     	//die();
 

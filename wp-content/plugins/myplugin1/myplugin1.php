@@ -30,3 +30,15 @@ function render_page() {
 
 add_action('init', 'render_page');
 add_filter('admin_footer_text', 'render_page');
+
+function shortcode_top_autores_front_end() {
+	echo "<h1>Top Autores</h1>";
+	echo "<p>Uma lista com os usuários que mais postaram em toda a história desse site</p>";
+
+}
+
+function shortcode_top_autores_register() {
+	add_shortcode('top-autores', 'shortcode_top_autores_front_end');
+}
+
+add_action('init', 'shortcode_top_autores_register');
