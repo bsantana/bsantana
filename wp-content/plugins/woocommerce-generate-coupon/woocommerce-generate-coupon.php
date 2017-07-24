@@ -124,11 +124,16 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
     	$error_code = WC_Coupon::E_WC_COUPON_MAX_SPEND_LIMIT_MET;
     	$coupon->error_message = $coupon->get_coupon_error( $error_code );
     	apply_filters( 'woocommerce_coupon_error', '$err', 200, null );
+    	wc_add_notice( '$msg', 'error' );
 		return $valid;
     	//die();
 
 	}
 	add_filter('woocommerce_coupon_is_valid','coupon_always_valid',99,2);
+	//add_filter( 'woocommerce_coupon_code', 'woocommerce_coupon_code_no_discount', 10, 1 );
+	function woocommerce_coupon_code_no_discount($coupon_code){
+		return ''; // return anything that is not a coupon code...
+	}
 	
 	function apply_product_on_coupon( $array, $int, $intt ) {
 	    global $woocommerce;
