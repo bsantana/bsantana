@@ -28,7 +28,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
     	$user_email = $order->get_user()->user_email;
 
 		global $wpdb;
-		$coupon_order = $wpdb->get_row( "SELECT * FROM $wpdb->posts WHERE post_parent = {$order_id}" );
+		$coupon_order = $wpdb->get_row( "SELECT * FROM $wpdb->posts WHERE post_parent = {$order_id} AND post_type = 'shop_coupon'" );
 
 		if ($coupon_order) {
 			$to = $user_email;
@@ -50,17 +50,17 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	function your_wc_autocomplete_order( $order_id ) {
 		if ( ! $order_id ) return;
 
-		echo "<p style='display: none;'>thankyou</p>";
+		global $wpdb;
+
 		$order = new WC_Order( $order_id );
-		//print_r($order->get_used_coupons());
 
 		$user_id    = $order->get_user()->ID;
 		$user_email = $order->get_user()->user_email;
+		$title_coupon = $order->get_used_coupons()[0];
 
 		foreach ($order->get_items() as $item_id => $item_obj) {
 			$data = wc_get_order_item_meta( $item_id, '_tmcartepo_data' );
-			//echo '<pre>';
-			//print_r($data);
+
 			if ($data[0]['value'] == "Mensal") {
 				$qty_mensal += $data[2]['quantity'];
 			}
@@ -69,7 +69,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 		// Regra para criar cupom personalizado aqui
 		//echo "Enviar email quantidade mensal: " . $qty_mensal;
 		if ($qty_mensal >= 1) {
-			$coupon_code = "{$user_id}-{$order_id}"; // Code
+			$coupon_code = "{$user_id}-{$order_id}/".rand($user_id, $order_id); // Code
 			$discount = '100'; // Desconto
 			$discount_type = 'percent_product'; // Type: fixed_cart, percent, fixed_product, percent_product
 			//$expiry_date = '2017-10-11';
@@ -79,14 +79,13 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				'post_content' => '',
 				'post_name' => $coupon_code,
 				'post_parent' => $order_id,
-				'post_status' => 'publish',
+				'post_status' => 'draft', // status: publish - publicado, draft - rascunho, trash - lixeira
 				'post_author' => 1,
 				'post_type'		=> 'shop_coupon'
 			);
 
 			// Verifica se existe cupom associado a ordem
-			global $wpdb;
-			$coupon_order = $wpdb->get_row( "SELECT * FROM $wpdb->posts WHERE post_parent = {$order_id}" );
+			$coupon_order = $wpdb->get_row( "SELECT * FROM $wpdb->posts WHERE post_parent = {$order_id} AND post_type = 'shop_coupon'" );
 
 			if (!$coupon_order) {
 				$new_coupon_id = wp_insert_post( $coupon );
@@ -98,51 +97,62 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				update_post_meta( $new_coupon_id, 'product_ids', '3090,3000,2989,2985,2181,9673,9938' );
 				update_post_meta( $new_coupon_id, 'exclude_product_ids', '' );
 				update_post_meta( $new_coupon_id, 'usage_limit', $qty_mensal );
+				update_post_meta( $new_coupon_id, 'usage_count', '0' );
 				update_post_meta( $new_coupon_id, 'expiry_date', $expiry_date ); // data de expiração
-				update_post_meta( $new_coupon_id, 'limit_usage_to_x_items', '1' ); // data de expiração
+				//update_post_meta( $new_coupon_id, 'date_expires', $expiry_date ); // data de expiração novo meta
+				update_post_meta( $new_coupon_id, 'limit_usage_to_x_items', '1' );
 				update_post_meta( $new_coupon_id, 'apply_before_tax', 'yes' );
 				update_post_meta( $new_coupon_id, 'maximum_amount', '300' );
 				update_post_meta( $new_coupon_id, 'free_shipping', 'no' );
+				update_post_meta( $new_coupon_id, 'current_user', $user_id );
+				update_post_meta( $new_coupon_id, 'coupon_usage', '0' );
 			}
+		} else {
+			// Verifica se existe cupom associado a ordem
+			$in_used_coupon = $wpdb->get_row( "SELECT * FROM $wpdb->posts WHERE post_title = '{$title_coupon}' AND post_type = 'shop_coupon'" );
+
+			if ($in_used_coupon->post_parent >= 1) {
+				update_post_meta( $in_used_coupon->ID, 'coupon_usage', '1' );
+			}
+			
 		}
 	}
 	add_action( 'woocommerce_thankyou', 'your_wc_autocomplete_order' );
 
-	function testando_er( $err, $err_code, $this ) {
-		return 'meu erro';
+	function error_101() {
+		return 'Cupom já utilizado esse mês.';
+	}
+
+	function error_102() {
+		return 'Você não tem permissão para utilizar esse cupom!';
 	}
 	
-	function coupon_always_valid($valid, $coupon){
+	function coupon_monthly_valid($valid, $coupon){
 		 $to = 'jaci.bruno@russelservicos.com.br';
         $subject = 'New Order Completed';
         //$headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
+        $current_user_id = get_current_user_id();
         
         $message = "A new order has been completed.\n";
         $message .= "Order ID: {$order_id} - {$valid} - {$coupon} - {$intt} \n";
         $message .= "Coupons for use:\n";
-        $message .= $coupon_order->post_title;
+        $message .= $coupon_used_meta;
+        $coupon_used_meta = get_post_meta($coupon->id, 'coupon_usage', true);
+        $coupon_current_user_meta = get_post_meta($coupon->id, 'current_user', true);
         
     	@wp_mail( $to, $subject, $message );
-    	if (1 == 2) {
-    		add_filter('woocommerce_coupon_error', 'testando_er');
-    		$valid = false;
-    	} else {
-    		$valid = true;
-    	}
-    	
-    	$error_code = WC_Coupon::E_WC_COUPON_MAX_SPEND_LIMIT_MET;
-    	$coupon->error_message = $coupon->get_coupon_error( $error_code );
-    	//apply_filters( 'woocommerce_coupon_error', '$err', 200, null );
-    	//wc_add_notice( '$msg', 'error' );
-		return $valid;
-    	//die();
 
+    	if ($coupon_used_meta == '1') { // Verifica se o cupom foi utilizado no mês atual
+    		add_filter('woocommerce_coupon_error', 'error_101');
+    		$valid = false;
+    	} else if ($coupon_current_user_meta >= 1 && $coupon_current_user_meta != $current_user_id) { // Verifica se existe o meta para o cupom personalizado e se o usuário que quer utilizar o cupom é o mesmo dono do cupom
+    		add_filter('woocommerce_coupon_error', 'error_102');
+    		$valid = false;
+    	}
+
+		return $valid;
 	}
-	add_filter('woocommerce_coupon_is_valid','coupon_always_valid',99,2);
-	//add_filter( 'woocommerce_coupon_code', 'woocommerce_coupon_code_no_discount', 10, 1 );
-	function woocommerce_coupon_code_no_discount($coupon_code){
-		return ''; // return anything that is not a coupon code...
-	}
+	add_filter('woocommerce_coupon_is_valid','coupon_monthly_valid',99,2);
 	
 	function apply_product_on_coupon( $array, $int, $intt ) {
 	    global $woocommerce;
