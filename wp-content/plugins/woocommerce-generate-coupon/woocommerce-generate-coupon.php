@@ -31,6 +31,17 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 		$coupon_order = $wpdb->get_row( "SELECT * FROM $wpdb->posts WHERE post_parent = {$order_id} AND post_type = 'shop_coupon'" );
 
 		if ($coupon_order) {
+			$wpdb->query( $wpdb->prepare( 
+				"
+				UPDATE $wpdb->posts 
+				SET post_status = %s
+				WHERE post_parent = %d
+					AND post_type = %s
+					AND post_status = %s
+				",
+			        'publish', $order_id, 'shop_coupon', 'draft'
+			) );
+
 			$to = $user_email;
 	        $subject = 'New Order Completed';
 	        //$headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
@@ -172,7 +183,16 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	}
 	add_action( 'woo_valid_coupon', 'verify_status_coupon' );
 	 
-	function my_cupons() {
+	function my_account_coupons() {
+		// Get all customer orders
+	    $customer_coupons = get_posts( array(
+	        'numberposts' => -1,
+	        'meta_key'    => 'current_user',
+	        'meta_value'  => get_current_user_id(),
+	        'post_type'   => 'shop_coupon',
+	        'post_status' => 'publish',
+	    ) );
+
 		echo "<h2>Meus cupons</h2>";
 		echo 
 			'<table class="shop_table shop_table_responsive my_account_orders">
@@ -185,22 +205,27 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 					</tr>
 				</thead>
 				<tbody>
-					<tr class="order">
-						<td class="order-number" data-title="Pedido">
-							<a href="http://www.teste2.russelservicos.com.br/minha-conta/view-order/14007">#14007</a>
+					<tr class="order">';
+					foreach ($customer_coupons as $coupon) {
+						$coupon_used_count = get_post_meta($coupon->ID, 'usage_count', true);
+	    				$coupon_used_limit = get_post_meta($coupon->ID, 'usage_limit', true);
+
+				    	echo '<td class="order-number" data-title="Pedido">
+							<a href="view-order/'.$coupon->post_parent.'">#'.$coupon->post_parent.'</a>
 						</td>
 						<td class="order-number" data-title="Pedido">
-							CODE123XX
+							'.$coupon->post_title.'
 						</td>
 						<td class="order-number" data-title="Pedido">
-							Desativado
+							'.(get_post_meta($coupon->ID, "coupon_usage", true) == "0" && $coupon_used_count < $coupon_used_limit ? "Ativo" : "Desativado").'
 						</td>
 						<td class="order-number" data-title="Pedido">
-							5 Meses
-						</td>
-					</tr>
+							'.($coupon_used_count < $coupon_used_limit ? ($coupon_used_limit - $coupon_used_count == 1 ? "1 Mês" : $coupon_used_limit - $coupon_used_count." Meses" ) : 'Expirado').'
+						</td>';
+				    }
+		echo 		'</tr>
 				</tbody>
 			</table>';
 	}
-	add_action('woocommerce_before_my_account', 'my_cupons');
+	add_action('woocommerce_before_my_account', 'my_account_coupons');
 }
