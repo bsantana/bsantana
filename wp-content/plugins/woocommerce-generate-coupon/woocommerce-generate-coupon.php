@@ -128,19 +128,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	}
 	
 	function coupon_monthly_valid($valid, $coupon){
-		 $to = 'jaci.bruno@russelservicos.com.br';
-        $subject = 'New Order Completed';
-        //$headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
         $current_user_id = get_current_user_id();
-        
-        $message = "A new order has been completed.\n";
-        $message .= "Order ID: {$order_id} - {$valid} - {$coupon} - {$intt} \n";
-        $message .= "Coupons for use:\n";
-        $message .= $coupon_used_meta;
         $coupon_used_meta = get_post_meta($coupon->id, 'coupon_usage', true);
         $coupon_current_user_meta = get_post_meta($coupon->id, 'current_user', true);
-        
-    	@wp_mail( $to, $subject, $message );
 
     	if ($coupon_used_meta == '1') { // Verifica se o cupom foi utilizado no mês atual
     		add_filter('woocommerce_coupon_error', 'error_101');
@@ -154,67 +144,63 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	}
 	add_filter('woocommerce_coupon_is_valid','coupon_monthly_valid',99,2);
 	
-	function apply_product_on_coupon( $array, $int, $intt ) {
-	    global $woocommerce;
-	    $coupon_id = '9-13976';
-	    $free_product_id = 54321;
-	    
+	function verify_status_coupon() {
+		global $wpdb;
 
-	    $to = 'jaci.bruno@russelservicos.com.br';
-        $subject = 'New Order Completed';
-        //$headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
-        
-        $message = "A new order has been completed.\n";
-        $message .= "Order ID: {$order_id} - {$array} - {$int} - {$intt} \n";
-        $message .= "Coupons for use:\n";
-        $message .= $coupon_order->post_title;
-        die();
-    	@wp_mail( $to, $subject, $message );
-    	
-	    if(in_array($coupon_id, $woocommerce->cart->applied_coupons)){
-	        $woocommerce->cart->add_to_cart($free_product_id, 1);
-	    }
+		$coupon_order = $wpdb->get_results( 
+			"
+			SELECT * 
+			FROM $wpdb->posts
+			WHERE post_parent > 0 
+				AND post_type = 'shop_coupon'
+				AND post_status = 'publish'
+			"
+		);
+
+		foreach ( $coupon_order as $coupon ) {
+			$coupon_used_meta = get_post_meta($coupon->ID, 'coupon_usage', true);
+			$coupon_used_count = get_post_meta($coupon->ID, 'usage_count', true);
+
+			if ($coupon_used_meta == '1') { // Verifica se o cupom foi utilizado no mês atual
+				update_post_meta( $coupon->ID, 'coupon_usage', '0' );
+			} else if ($coupon_used_meta == '0') {
+				update_post_meta( $coupon->ID, 'usage_count', $coupon_used_count + 1 );
+			}
+		}
+
+		@wp_mail( 'jaci.bruno@russelservicos.com.br', 'WP Cron-trol', 'Teste do dia primeiro do mês!' );
 	}
-	//add_action('woocommerce_applied_coupon', 'apply_product_on_coupon');
-
-	function so_payment_complete( $order_id ){
-	    $order = wc_get_order( $order_id );
-	    $user = $order->get_user();
-	    $products = $order->get_items();
-	    echo "payment complete";
-	    print_r($order);
-	    print_r($products);
-	    if( $user ){
-	        // do something with the user
-	    }
-	}
-	//add_action( 'woocommerce_payment_complete', 'so_payment_complete' );
-
-	function woo_email_order_coupons( $order_id ) {
-        $order = new WC_Order( $order_id );
-        
-        if( $order->get_used_coupons() ) {
-        
-        	$to = 'youremail@yourcompany.com';
-	        $subject = 'New Order Completed';
-	        $headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
-	        
-	        $message = 'A new order has been completed.\n';
-	        $message .= 'Order ID: '.$order_id.'\n';
-	        $message .= 'Coupons used:\n';
-	        
-	        foreach( $order->get_used_coupons() as $coupon) {
-		        $message .= $coupon.'\n';
-	        }
-	        @wp_mail( $to, $subject, $message, $headers );
-        }
-	}
-	//add_action( 'woocommerce_thankyou', 'woo_email_order_coupons' ); Funçao para mudar status do cupom após ele ser utilizado
-
- 
-	// add_action( 'woocommerce_email_before_order_table', 'add_content', 20 ); adicionando contéudo ao email de ordem na página de agradecimento
+	add_action( 'woo_valid_coupon', 'verify_status_coupon' );
 	 
-	function add_content() {
-	echo '<h2 id="h2thanks">Get 20% off</h2><p id="pthanks">Thank you for making this purchase! Come back and use the code "<strong>Back4More</strong>" to receive a 20% discount on your next purchase! Click here to continue shopping.</p>';
+	function my_cupons() {
+		echo "<h2>Meus cupons</h2>";
+		echo 
+			'<table class="shop_table shop_table_responsive my_account_orders">
+				<thead>
+					<tr>
+						<th class="order-number"><span class="nobr">Pedido</span></th>
+						<th class="order-number"><span class="nobr">Código do Cupom</span></th>
+						<th class="order-number"><span class="nobr">Status do Cupom</span></th>
+						<th class="order-number"><span class="nobr">Vencimento</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr class="order">
+						<td class="order-number" data-title="Pedido">
+							<a href="http://www.teste2.russelservicos.com.br/minha-conta/view-order/14007">#14007</a>
+						</td>
+						<td class="order-number" data-title="Pedido">
+							CODE123XX
+						</td>
+						<td class="order-number" data-title="Pedido">
+							Desativado
+						</td>
+						<td class="order-number" data-title="Pedido">
+							5 Meses
+						</td>
+					</tr>
+				</tbody>
+			</table>';
 	}
+	add_action('woocommerce_before_my_account', 'my_cupons');
 }
