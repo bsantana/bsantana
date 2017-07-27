@@ -134,6 +134,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				update_post_meta( $new_coupon_id, 'free_shipping', 'no' );
 				update_post_meta( $new_coupon_id, 'current_user', $user_id );
 				update_post_meta( $new_coupon_id, 'coupon_usage', '0' );
+				update_post_meta( $new_coupon_id, 'count_cron', '0' );
 			}
 		} else {
 			// Verifica se existe cupom associado a ordem
@@ -204,18 +205,23 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			"
 		);
 
-		foreach ( $coupon_order as $coupon ) {
-			$coupon_used_meta = get_post_meta($coupon->ID, 'coupon_usage', true);
-			$coupon_used_count = get_post_meta($coupon->ID, 'usage_count', true);
+		if ( ! empty( $coupon_order ) ) {
+			foreach ( $coupon_order as $coupon ) {
+				$coupon_used_meta = get_post_meta($coupon->ID, 'coupon_usage', true);
+				$coupon_used_count = get_post_meta($coupon->ID, 'usage_count', true);
+				$count_cron = get_post_meta($coupon->ID, 'count_cron', true);
 
-			if ($coupon_used_meta == '1') { // Verifica se o cupom foi utilizado no mês atual
-				update_post_meta( $coupon->ID, 'coupon_usage', '0' );
-			} else if ($coupon_used_meta == '0') {
-				update_post_meta( $coupon->ID, 'usage_count', $coupon_used_count + 1 );
+				if ( $coupon_used_meta == '1' && $count_cron >= 30 ) { // Verifica se o cupom foi utilizado no mês atual e contou os 30 dias
+					update_post_meta( $coupon->ID, 'coupon_usage', '0' );
+					update_post_meta( $coupon->ID, 'count_cron', '0' );
+				} else if ( $coupon_used_meta == '0' && $count_cron >= 30 ) {
+					update_post_meta( $coupon->ID, 'usage_count', $coupon_used_count + 1 );
+					update_post_meta( $coupon->ID, 'count_cron', '0' );
+				} else {
+					update_post_meta( $coupon->ID, 'count_cron', $count_cron + 1 );
+				}
 			}
 		}
-
-		@wp_mail( 'jaci.bruno@russelservicos.com.br', 'WP Cron-trol', 'Teste do dia primeiro do mês!' );
 	}
 	add_action( 'woo_valid_coupon', 'verify_status_coupon' );
 	 
