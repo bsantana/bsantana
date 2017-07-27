@@ -59,6 +59,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	add_action( 'woocommerce_order_status_completed', 'send_coupom_order_status_completed', 10, 1 );
 
 	function delete_coupon( $order_id ) {
+		global $wpdb;
+
 		$wpdb->query( $wpdb->prepare( 
 			"
 			UPDATE $wpdb->posts 
