@@ -154,6 +154,10 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 	function error_102() {
 		return 'Você não tem permissão para utilizar esse cupom!';
 	}
+
+	function error_103() {
+		return 'Alguns produtos que estão no carrinho não se aplicam a esse cupom!';
+	}
 	
 	function coupon_monthly_valid($valid, $coupon){
         $current_user_id = get_current_user_id();
@@ -166,6 +170,21 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
     	} else if ($coupon_current_user_meta >= 1 && $coupon_current_user_meta != $current_user_id) { // Verifica se existe o meta para o cupom personalizado e se o usuário que quer utilizar o cupom é o mesmo dono do cupom
     		add_filter('woocommerce_coupon_error', 'error_102');
     		$valid = false;
+    	}
+
+    	if ($coupon_current_user_meta >= 1 && $coupon_current_user_meta == $current_user_id && $coupon_used_meta == '0') {
+    		global $woocommerce;
+	    	$items = $woocommerce->cart->get_cart();
+
+	    	foreach($items as $item => $values) { 
+				$_product = $values['data']->post;
+				$cart_meta = $values['tmcartepo'];
+
+				if ($cart_meta[0]['value'] != 'Diária' || $cart_meta[1]['value'] != '08 às 18h' || $cart_meta[2]['value'] != 'Dias Úteis') {
+					add_filter('woocommerce_coupon_error', 'error_103');
+	    			$valid = false;
+				}
+			}
     	}
 
 		return $valid;
