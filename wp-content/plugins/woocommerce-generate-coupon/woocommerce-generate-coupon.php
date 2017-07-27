@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Cupom Personalizado
+ * Plugin Name: Cupom Automatizado
  * Description: Gera cupom automaticamente e encaminha via email para o usuário
  * Author: Jaci Felicio
  * Author URI: http://jfelicio.com/
@@ -57,6 +57,21 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
     	
 	}
 	add_action( 'woocommerce_order_status_completed', 'send_coupom_order_status_completed', 10, 1 );
+
+	function delete_coupon( $order_id ) {
+		$wpdb->query( $wpdb->prepare( 
+			"
+			UPDATE $wpdb->posts 
+			SET post_status = %s
+			WHERE post_parent = %d
+				AND post_type = %s
+			",
+		        'trash', $order_id, 'shop_coupon'
+		) );
+	}
+
+	add_action('woocommerce_order_status_refunded', 'delete_coupon');
+	add_action('woocommerce_order_status_cancelled', 'delete_coupon');
 
 	function your_wc_autocomplete_order( $order_id ) {
 		if ( ! $order_id ) return;
