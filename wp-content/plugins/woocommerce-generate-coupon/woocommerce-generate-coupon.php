@@ -210,6 +210,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				$coupon_used_meta = get_post_meta($coupon->ID, 'coupon_usage', true);
 				$coupon_used_count = get_post_meta($coupon->ID, 'usage_count', true);
 				$count_cron = get_post_meta($coupon->ID, 'count_cron', true);
+				$coupon_used_limit = get_post_meta($coupon->ID, 'usage_limit', true);
 
 				if ( $coupon_used_meta == '1' && $count_cron >= 30 ) { // Verifica se o cupom foi utilizado no mês atual e contou os 30 dias
 					update_post_meta( $coupon->ID, 'coupon_usage', '0' );
@@ -217,7 +218,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 				} else if ( $coupon_used_meta == '0' && $count_cron >= 30 ) {
 					update_post_meta( $coupon->ID, 'usage_count', $coupon_used_count + 1 );
 					update_post_meta( $coupon->ID, 'count_cron', '0' );
-				} else {
+				} else if ( $coupon_used_count < $coupon_used_limit ) {
 					update_post_meta( $coupon->ID, 'count_cron', $count_cron + 1 );
 				}
 			}
