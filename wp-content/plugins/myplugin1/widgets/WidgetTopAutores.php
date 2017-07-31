@@ -19,6 +19,7 @@ class WidgetTopAutores extends WP_Widget
 
 	public function widget() {
 		echo "Buscar<input><button>Go</button>";
+		require_once( DIRETORIO_RAIZ_TOP_AUTORES . 'widgets/widget_top_autores_front_end.php');
 	}
 
 	public function update() {
