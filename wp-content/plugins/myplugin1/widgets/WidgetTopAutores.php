@@ -13,16 +13,16 @@ class WidgetTopAutores extends WP_Widget
 		parent::__construct( 'widget_top_autores', 'Top Autores', $dado);
 	}
 
-	public function form() {
+	public function form( $instance ) {
 		echo "Buscar<br><br><input>";
 	}
 
-	public function widget() {
+	public function widget( $args, $instance ) {
 		echo "Buscar<input><button>Go</button>";
 		require_once( DIRETORIO_RAIZ_TOP_AUTORES . 'widgets/widget_top_autores_front_end.php');
 	}
 
-	public function update() {
+	public function update( $new_instance, $old_instance ) {
 
 	}
 }
