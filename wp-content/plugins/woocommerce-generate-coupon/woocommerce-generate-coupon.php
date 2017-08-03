@@ -26,6 +26,7 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
     	// Verifica se existe cupom associado a ordem
     	$order = new WC_Order( $order_id );
     	$user_email = $order->get_user()->user_email;
+    	$user_name = $order->get_user()->display_name;
 
 		global $wpdb;
 		$coupon_order = $wpdb->get_row( "SELECT * FROM $wpdb->posts WHERE post_parent = {$order_id} AND post_type = 'shop_coupon'" );
@@ -43,15 +44,84 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			) );
 
 			$to = $user_email;
-	        $subject = 'New Order Completed';
+			//$to = 'jaci.bruno@russelservicos.com.br';
+	        $subject = 'Cupom de Diária Gratuita';
 	        //$headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
+	        $headers = "Content-Type: text/html; charset=UTF-8\r\n";
+	        //$message = "A new order has been completed.\n";
+	        //$message .= "Order ID: {$order_id} \n";
+	        //$message .= "Coupons for use:\n";
+	        //$message .= $coupon_order->post_title;
+	        /*$message = "Olá {$user_name},
+	        <img src='...'>
+			Estamos felizes com a contratação no Plano Mensal Russel Hora Mais e esperamos que tire o máximo de proveito. Um dos diferenciais da realização de contratação em nosso plano é o bônus que você recebe em Diárias Gratuitas. Ao contratar qualquer profissional no plano mensal você ganha 1 diária gratuita por mês de contratação;
+
+			Segue abaixo o seu CUPOM para utilização do benefício de DIÁRIA GRATUITA. 
+
+			CÓDIGO DO CUPOM DE DIÁRIA GRATUITA:  {$coupon_order->post_title}
+
+			Para saber mais detalhes sobre as regras de utilização dos benefícios do Russel Hora Mais, clique aqui.
+			";*/
+			$message = '<div style="width: 600px;margin: auto;margin-bottom: 20px;"><img style="margin: auto;display: block;" src="https://www.russelservicos.com.br/wp-content/uploads/2017/08/LOGO-RUSSEL-EMAIL.png"></div><table border="0" cellpadding="0" cellspacing="0" width="600" id="template_container" style="box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important; background-color: #fdfdfd; border: 1px solid #dcdcdc; border-radius: 3px !important;margin: auto;">
+<tbody><tr>
+<td align="center" valign="top">
+                                    <!-- Header -->
+                                	<table border="0" cellpadding="0" cellspacing="0" width="600" id="template_header" style="background-color: #cd1f25; border-radius: 3px 3px 0 0 !important; color: #ffffff; border-bottom: 0; font-weight: bold; line-height: 100%; vertical-align: middle; font-family: &quot;Helvetica Neue&quot;, Helvetica, Roboto, Arial, sans-serif;"><tbody><tr>
+<td id="header_wrapper" style="padding: 36px 48px; display: block;">
+                                            	<h1 style="color: #ffffff; font-family: &quot;Helvetica Neue&quot;, Helvetica, Roboto, Arial, sans-serif; font-size: 30px; font-weight: 300; line-height: 150%; margin: 0; text-align: center; text-shadow: 0 1px 0 #d74c51; -webkit-font-smoothing: antialiased;">Cupom de Diária Gratuita</h1>
+                                            </td>
+                                        </tr></tbody></table>
+<!-- End Header -->
+</td>
+                            </tr>
+<tr>
+<td align="center" valign="top">
+                                    <!-- Body -->
+                                	<table border="0" cellpadding="0" cellspacing="0" width="600" id="template_body"><tbody><tr>
+<td valign="top" id="body_content" style="background-color: #fdfdfd;">
+                                                <!-- Content -->
+                                                <table border="0" cellpadding="20" cellspacing="0" width="100%"><tbody><tr>
+<td valign="top" style="padding: 0px;">
+                                                            <div id="body_content_inner" style="color: #737373; font-family: &quot;Helvetica Neue&quot;, Helvetica, Roboto, Arial, sans-serif; font-size: 14px; line-height: 150%; text-align: left;">
+<p style="margin: 0 0 16px;padding: 48px 48px 0 48px;">Olá '.$user_name.',<br><br>
 	        
-	        $message = "A new order has been completed.\n";
-	        $message .= "Order ID: {$order_id} \n";
-	        $message .= "Coupons for use:\n";
-	        $message .= $coupon_order->post_title;
+			Estamos felizes com a contratação no Plano Mensal Russel Hora Mais e esperamos que tire o máximo de proveito. Um dos diferenciais da realização de contratação em nosso plano é o bônus que você recebe em Diárias Gratuitas. <br><br><b>Ao contratar qualquer profissional no plano mensal você ganha 1 diária gratuita por mês de contratação.</b><br><br>
+
+			Segue abaixo o seu CUPOM para utilização do benefício de DIÁRIA GRATUITA. <br><br>
+			<div style="position: relative;padding: 0 48px;">
+			<img style="width: 500px;" src="https://www.russelservicos.com.br/wp-content/uploads/2017/08/CUPOM.png">
+			<p style="position: absolute;right: 21.4%;top: 28%;color: #737373;font-size: 30px;padding: 16px;background: #fff;border-radius: 3px;">'.$coupon_order->post_title.'</p>
+			</div><br>
+
+			<p style="padding: 0 48px 48px 48px;">Para saber mais detalhes sobre as regras de utilização dos benefícios do Russel Hora Mais e de como utilizar o seu cupom, <a href="https://www.russelservicos.com.br/plano-mensal-russel-hora-mais/">clique aqui</a>.</p>
+															</div>
+														</td>
+                                                    </tr></tbody></table>
+<!-- End Content -->
+</td>
+                                        </tr></tbody></table>
+<!-- End Body -->
+</td>
+                            </tr>
+<tr style="display: none;">
+<td align="center" valign="top">
+                                    <!-- Footer -->
+                                	<table border="0" cellpadding="10" cellspacing="0" width="600" id="template_footer"><tbody><tr>
+<td valign="top" style="padding: 0; -webkit-border-radius: 6px;">
+                                                <table border="0" cellpadding="10" cellspacing="0" width="100%"><tbody><tr>
+<td colspan="2" valign="middle" id="credit" style="padding: 0 48px 48px 48px; -webkit-border-radius: 6px; border: 0; color: #e1797c; font-family: Arial; font-size: 12px; line-height: 125%; text-align: center;">
+                                                        	<p class="title-email">Russel Serviços</p>
+<p><a href="http://www.russelservicos.com.br/termos-e-condicoes/" style="color: #cd1f25; font-weight: normal; text-decoration: underline;">Clique aqui e leia os Termos e Condições do serviço contratado acima.</a></p>
+                                                        </td>
+                                                    </tr></tbody></table>
+</td>
+                                        </tr></tbody></table>
+<!-- End Footer -->
+</td>
+                            </tr>
+</tbody></table>';
 	        
-        	@wp_mail( $to, $subject, $message );
+        	@wp_mail( $to, $subject, $message, $headers );
 		}
 
     	
