@@ -43,8 +43,8 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			        'publish', $order_id, 'shop_coupon', 'draft'
 			) );
 
-			$to = $user_email;
-			//$to = 'jaci.bruno@russelservicos.com.br';
+			//$to = $user_email;
+			$to = 'jaci.bruno@russelservicos.com.br';
 	        $subject = 'Cupom de Diária Gratuita';
 	        //$headers = 'From: My Name <youremail@yourcompany.com>' . "\r\n";
 	        $headers = "Content-Type: text/html; charset=UTF-8\r\n";
@@ -88,9 +88,9 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 			Estamos felizes com a contratação no Plano Mensal Russel Hora Mais e esperamos que tire o máximo de proveito. Um dos diferenciais da realização de contratação em nosso plano é o bônus que você recebe em Diárias Gratuitas. <br><br><b>Ao contratar qualquer profissional no plano mensal você ganha 1 diária gratuita por mês de contratação.</b><br><br>
 
 			Segue abaixo o seu CUPOM para utilização do benefício de DIÁRIA GRATUITA. <br><br>
-			<div style="position: relative;padding: 0 48px;">
-			<img style="width: 500px;" src="https://www.russelservicos.com.br/wp-content/uploads/2017/08/CUPOM.png">
-			<p style="position: absolute;right: 21.4%;top: 28%;color: #737373;font-size: 30px;padding: 16px;background: #fff;border-radius: 3px;">'.$coupon_order->post_title.'</p>
+			<div style="position: relative;padding: 0 48px;text-align: center;">
+			<p style="background: #cd1f25;padding: 15px;margin: 0;color: #fff;font-size: 18px;"><b>CÓDIGO DO CUPOM:</b></p>
+			<p style="border: 2px dashed #cd1f25;margin: 0;right: 21.4%;top: 28%;color: #cd1f25;font-size: 30px;padding: 16px;background: #fff;border-radius: 3px;">'.$coupon_order->post_title.'</p>
 			</div><br>
 
 			<p style="padding: 0 48px 48px 48px;">Para saber mais detalhes sobre as regras de utilização dos benefícios do Russel Hora Mais e de como utilizar o seu cupom, <a href="https://www.russelservicos.com.br/plano-mensal-russel-hora-mais/">clique aqui</a>.</p>
