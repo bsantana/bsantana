@@ -26,26 +26,38 @@ jQuery(document).ready(function($) {
 		this.onclick = function(e) {
 			e.preventDefault();
 
+			var dados = {
+				'action': 'apply_like',
+				'link_url': this.href
+			};
+			
 			$.ajax({
-				type: "GET",
-				url: LiverollSettings.plugin_url + '/wp-live-blogroll-ajax.php',
+				type: "POST",
+				url: ajax_object.plugin_url,
 				timeout: 3000,
-				data:
-				{
-					link_url: this.href
-				},
+				dataType: 'json',
+				data: dados,
 				success: function(msg)
 				{
 					jQuery('#lb_popup').html(msg);
 					jQuery('#lb_popup').fadeIn(300);
-					alert("Sucesso");
+					alert("Sucesso1");
+					console.log(msg);
+					alert(msg);
+					console.log(typeof msg.boolstring);
+					console.log(typeof msg.bool);
 				},
 				error: function(msg)
 				{
 					jQuery('#lb_popup').html('Error: ' + msg.responseText);
-					alert("Error");
+					alert("Error1");
 				}
 			})
+
+			/*$.post(ajax_object.plugin_url, dados, function(resposta) {
+				console.log(resposta);
+				alert(resposta);
+			}, 'json');*/
 		}
 	},
 	function() {

@@ -82,10 +82,17 @@ function WPLiveRoll_ScriptsAction()
 {
 	wp_enqueue_script( 'wp_live_blogroll_script', plugins_url( 'wp-live-blogroll.js', BLOGROLL__PLUGIN_FILE ), array( 'jquery' ) );
 
-	wp_localize_script('wp_live_blogroll_script', 'LiverollSettings', array('plugin_url' => BLOGROLL__PLUGIN_DIR));
+	wp_localize_script('wp_live_blogroll_script', 'ajax_object', array('plugin_url' => admin_url('admin-ajax.php')));
 }
 function WPLiveRoll_StylesAction()
 {
 	wp_enqueue_style( 'wp_live_blogroll_style', plugins_url( 'wp-live-blogroll.css', BLOGROLL__PLUGIN_FILE ), array() );
 }
 
+add_action( 'wp_ajax_apply_like', 'apply_like_post' );
+add_action( 'wp_ajax_nopriv_apply_like', 'apply_like_post' );
+function apply_like_post()
+{
+	echo json_encode( array( 'class' => 'erro', 'mensagem' => 'Todos os campos são obrigatórios.', 'link_url' => $_POST['link_url'], 'boolstring' => 'true', 'bool' => true) );
+	wp_die();
+}
